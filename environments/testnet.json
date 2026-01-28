@@ -1,0 +1,7 @@
+{
+  "settlementChain": {
+    "chainId": 84532,
+    "publicRpcUrl": "https://base-sepolia.gateway.tenderly.co",
+    "nodeRegistry": "0x7C639a2be8B75c4799c1372A42448f41B89D88DE"
+  }
+}
