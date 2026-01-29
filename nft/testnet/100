@@ -1,0 +1,10 @@
+{
+    "description": "XMTP Network Node operated by XMTP Labs",
+    "image": "https://raw.githubusercontent.com/xmtp/network-xmtp-org/main/nft/testnet/assets/100.png",
+    "external_url": "https://xmtp.org",
+    "operator_name": "XMTP Labs",
+    "region": "Ohio",
+    "social": {
+        "twitter": "@xmtp_"
+    }
+}
