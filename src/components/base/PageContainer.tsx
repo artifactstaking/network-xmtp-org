@@ -42,19 +42,19 @@ export function PageContainer({
     containerMaxWidth = 'max-w-full';
     containerMinHeight = `min-h-[${BREAKPOINTS.mobile}px]`;
     containerPaddingX = 'px-4';
-    containerPaddingY = 'pt-4 pb-6';
+    containerPaddingY = 'pb-6';
     containerGap = 'gap-8';
   } else if (currentBreakpoint === 'tablet') {
     containerMaxWidth = 'max-w-full';
     containerMinHeight = `min-h-[${BREAKPOINTS.tablet}px]`;
     containerPaddingX = 'px-4';
-    containerPaddingY = 'pt-6 pb-8';
+    containerPaddingY = 'pb-8';
     containerGap = 'gap-10';
   } else if (currentBreakpoint === 'desktop' || currentBreakpoint === 'largeDesktop') {
     containerMaxWidth = '';
     containerMinHeight = `min-h-[${BREAKPOINTS.desktop}px]`;
     containerPaddingX = 'px-[60px]';
-    containerPaddingY = 'pt-8 pb-10';
+    containerPaddingY = 'pb-10';
     containerGap = 'gap-12';
   }
 

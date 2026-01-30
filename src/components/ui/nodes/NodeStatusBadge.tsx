@@ -2,7 +2,6 @@ import React from 'react';
 import { cn } from '@/utils/cn';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/base';
 import { NodeStatus, NodeHealthResult } from '@/types/nodes';
-import { Caption } from '@/components/typography';
 
 interface NodeStatusBadgeProps {
   status: NodeStatus;
@@ -11,25 +10,29 @@ interface NodeStatusBadgeProps {
   className?: string;
 }
 
-const statusConfig: Record<NodeStatus, { color: string; bgColor: string; label: string }> = {
+const statusConfig: Record<NodeStatus, { dotClass: string; bgClass: string; textClass: string; label: string }> = {
   online: {
-    color: 'bg-green-500',
-    bgColor: 'bg-green-100',
+    dotClass: 'bg-emerald-400',
+    bgClass: 'bg-emerald-500/10',
+    textClass: 'text-emerald-400',
     label: 'Online',
   },
   offline: {
-    color: 'bg-red-500',
-    bgColor: 'bg-red-100',
+    dotClass: 'bg-red-400',
+    bgClass: 'bg-red-500/10',
+    textClass: 'text-red-400',
     label: 'Offline',
   },
   error: {
-    color: 'bg-yellow-500',
-    bgColor: 'bg-yellow-100',
+    dotClass: 'bg-amber-400',
+    bgClass: 'bg-amber-500/10',
+    textClass: 'text-amber-400',
     label: 'Error',
   },
   unknown: {
-    color: 'bg-gray-400',
-    bgColor: 'bg-gray-100',
+    dotClass: 'bg-zinc-500',
+    bgClass: 'bg-zinc-700/50',
+    textClass: 'text-zinc-400',
     label: 'Unknown',
   },
 };
@@ -45,26 +48,26 @@ export const NodeStatusBadge: React.FC<NodeStatusBadgeProps> = ({
   const tooltipContent = health ? (
     <div className="flex flex-col gap-1 text-xs">
       <div>
-        <strong>Status:</strong> {config.label}
+        <span className="text-zinc-400">Status:</span> <span className="text-zinc-200">{config.label}</span>
       </div>
       {health.version && (
         <div>
-          <strong>Version:</strong> {health.version}
+          <span className="text-zinc-400">Version:</span> <span className="text-zinc-200">{health.version}</span>
         </div>
       )}
       {health.latencyMs !== undefined && (
         <div>
-          <strong>Latency:</strong> {health.latencyMs}ms
+          <span className="text-zinc-400">Latency:</span> <span className="text-zinc-200">{health.latencyMs}ms</span>
         </div>
       )}
       {health.error && (
         <div>
-          <strong>Error:</strong> {health.error}
+          <span className="text-zinc-400">Error:</span> <span className="text-zinc-200">{health.error}</span>
         </div>
       )}
       {health.lastChecked && (
         <div>
-          <strong>Last checked:</strong> {health.lastChecked.toLocaleTimeString()}
+          <span className="text-zinc-400">Last checked:</span> <span className="text-zinc-200">{health.lastChecked.toLocaleTimeString()}</span>
         </div>
       )}
     </div>
@@ -78,13 +81,19 @@ export const NodeStatusBadge: React.FC<NodeStatusBadgeProps> = ({
         <TooltipTrigger asChild>
           <div
             className={cn(
-              'inline-flex items-center gap-1.5 px-2 py-1 rounded-full',
-              config.bgColor,
+              'inline-flex items-center gap-1.5 px-2 py-1 rounded-full transition-colors',
+              config.bgClass,
               className
             )}
           >
-            <span className={cn('w-2 h-2 rounded-full', config.color)} />
-            {showLabel && <Caption className="text-primary font-medium">{config.label}</Caption>}
+            <span
+              className={cn(
+                'w-1.5 h-1.5 rounded-full transition-colors',
+                config.dotClass,
+                status === 'online' && 'animate-pulse'
+              )}
+            />
+            {showLabel && <span className={cn('text-xs font-medium', config.textClass)}>{config.label}</span>}
           </div>
         </TooltipTrigger>
         <TooltipContent side="top">{tooltipContent}</TooltipContent>

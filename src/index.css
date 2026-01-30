@@ -2,55 +2,88 @@
 @tailwind components;
 @tailwind utilities;
 
+/* ============================================
+ * Base Styles - Dark theme like gateway-console
+ * ============================================ */
 :root {
-  --background: #F6F7FC;
-  --foreground: #000000;
-  --card: #FFFFFF;
-  --card-foreground: #000000;
-  --popover: #FFFFFF;
-  --popover-foreground: #000000;
-  --primary: #000000;
-  --primary-foreground: #FFFFFF;
-  --secondary: #5D5454;
-  --secondary-foreground: #000000;
-  --muted: #F1F5F9;
-  --muted-foreground: #64748B;
-  --accent: #FC4F37;
-  --accent-foreground: #FFFFFF;
-  --destructive: #EF4444;
-  --destructive-foreground: #FFFFFF;
-  --border: #B7C5DF;
-  --input: #E2E8F0;
-  --ring: #FC4F37;
-  --radius: 0.5rem;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  line-height: 1.5;
+  font-weight: 400;
+
+  color-scheme: dark;
+  color: rgba(255, 255, 255, 0.87);
+  background-color: #000;
+
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+
+  /* Radius */
+  --radius: 0.625rem;
+
+  /* Semantic colors - dark theme */
+  --background: 0 0% 0%; /* black */
+  --foreground: 0 0% 98%;
+
+  --card: 240 6% 10%; /* zinc-900 */
+  --card-foreground: 0 0% 98%;
+
+  --popover: 240 6% 10%;
+  --popover-foreground: 0 0% 98%;
+
+  --primary: 0 0% 98%;
+  --primary-foreground: 240 6% 10%;
+
+  --secondary: 240 4% 16%;
+  --secondary-foreground: 0 0% 98%;
+
+  --muted: 240 4% 16%;
+  --muted-foreground: 240 5% 65%;
+
+  --accent: 8 97% 60%; /* XMTP Red #FC4F37 */
+  --accent-foreground: 0 0% 100%;
+
+  --destructive: 0 63% 31%;
+  --destructive-foreground: 0 0% 98%;
+
+  --border: 240 4% 16%;
+  --input: 240 4% 16%;
+  --ring: 8 97% 60%;
 }
 
 body {
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  background-color: var(--background);
-  color: var(--foreground);
+  margin: 0;
+  min-width: 320px;
+  min-height: 100vh;
+  background-color: #000;
 }
 
-.text-accent {
-  color: var(--accent);
+@layer base {
+  * {
+    @apply border-zinc-800;
+  }
 }
 
-.bg-accent {
-  background-color: var(--accent);
-}
-
-.text-secondary {
-  color: var(--secondary);
-}
-
+/* ============================================
+ * Utility classes
+ * ============================================ */
 .bg-background {
-  background-color: var(--background);
+  background-color: hsl(var(--background));
 }
 
-.text-primary {
-  color: var(--primary);
+.bg-card {
+  background-color: hsl(var(--card));
 }
 
-.text-destructive {
-  color: var(--destructive);
+.text-foreground {
+  color: hsl(var(--foreground));
+}
+
+.text-muted-foreground {
+  color: hsl(var(--muted-foreground));
+}
+
+.border-border {
+  border-color: hsl(var(--border));
 }

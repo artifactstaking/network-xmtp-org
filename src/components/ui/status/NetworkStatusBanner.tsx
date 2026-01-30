@@ -35,7 +35,7 @@ export const NetworkStatusBanner: React.FC<NetworkStatusBannerProps> = ({
   return (
     <div
       className={cn(
-        'rounded-lg px-6 py-3',
+        'rounded-lg px-6 py-3 transition-colors duration-300',
         className
       )}
       style={{
@@ -46,7 +46,7 @@ export const NetworkStatusBanner: React.FC<NetworkStatusBannerProps> = ({
         {/* Status indicator and label */}
         <div className="flex items-center gap-2">
           <span className="h-2.5 w-2.5 rounded-full bg-white animate-pulse" />
-          <span className="text-lg font-semibold text-white">
+          <span className="text-sm font-medium text-white">
             {config.label}
           </span>
         </div>
@@ -58,7 +58,7 @@ export const NetworkStatusBanner: React.FC<NetworkStatusBannerProps> = ({
             <button
               onClick={onRefresh}
               disabled={isRefreshing}
-              className="p-1 rounded-full hover:bg-white/10 transition-colors disabled:opacity-50"
+              className="p-1.5 rounded-full hover:bg-white/20 active:bg-white/30 transition-colors disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/50"
               title="Refresh status"
             >
               <RefreshCw className={cn('h-4 w-4', isRefreshing && 'animate-spin')} />
