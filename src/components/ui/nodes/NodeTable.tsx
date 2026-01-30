@@ -6,12 +6,10 @@ import {
   TableHeader,
   TableRow,
   TableHead,
-  Badge,
   Avatar,
   AvatarImage,
   AvatarFallback,
 } from '@/components/base';
-import { Label, Body, Caption } from '@/components/typography';
 import { NodeStatusBadge } from './NodeStatusBadge';
 import { NodeData, NodeMetadata, NodeHealthResult } from '@/types/nodes';
 import { useFormatters } from '@/hooks/utils/useFormatters';
@@ -54,29 +52,32 @@ export const NodeTable: React.FC<NodeTableProps> = ({
     <div className="w-full overflow-x-auto">
       <Table>
         <TableHeader>
-          <TableRow>
-            <TableHead className="min-w-[200px]">
-              <Label>Node</Label>
+          <TableRow className="border-zinc-800/50 hover:bg-transparent">
+            <TableHead className="min-w-[200px] text-[11px] font-mono text-zinc-500 uppercase tracking-wider">
+              Node
             </TableHead>
-            <TableHead className="w-24">
-              <Label>Status</Label>
+            <TableHead className="w-24 text-[11px] font-mono text-zinc-500 uppercase tracking-wider">
+              Status
             </TableHead>
-            <TableHead className="w-28">
-              <Label>Location</Label>
+            <TableHead className="w-24 text-[11px] font-mono text-zinc-500 uppercase tracking-wider">
+              Type
             </TableHead>
-            <TableHead className="min-w-[200px]">
-              <Label>HTTP Address</Label>
+            <TableHead className="w-28 text-[11px] font-mono text-zinc-500 uppercase tracking-wider">
+              Location
             </TableHead>
-            <TableHead className="w-32">
-              <Label>Owner</Label>
+            <TableHead className="min-w-[200px] text-[11px] font-mono text-zinc-500 uppercase tracking-wider">
+              HTTP Address
+            </TableHead>
+            <TableHead className="w-32 text-[11px] font-mono text-zinc-500 uppercase tracking-wider">
+              Owner
             </TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
           {nodes.length === 0 ? (
             <TableRow>
-              <TableCell colSpan={5} className="text-center py-8">
-                <Body className="text-secondary">No nodes found</Body>
+              <TableCell colSpan={6} className="text-center py-8">
+                <span className="text-zinc-500">No nodes found</span>
               </TableCell>
             </TableRow>
           ) : (
@@ -86,31 +87,34 @@ export const NodeTable: React.FC<NodeTableProps> = ({
               const region = getRegion(node);
               const operatorName = getOperatorName(node);
               const avatarUrl = getAvatarUrl(node);
+              const nodeType = node.isCanonical ? 'Active' : 'Standby';
 
               return (
                 <TableRow
                   key={node.nodeId}
-                  className="cursor-pointer hover:bg-muted/50"
+                  className="cursor-pointer border-zinc-800/50 hover:bg-zinc-800/30 focus-visible:bg-zinc-800/30 focus-visible:outline-none"
                   onClick={() => onNodeClick?.(node)}
+                  tabIndex={0}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      e.preventDefault();
+                      onNodeClick?.(node);
+                    }
+                  }}
                 >
                   <TableCell>
                     <div className="flex items-center gap-3">
-                      <Avatar className="h-10 w-10">
+                      <Avatar className="h-9 w-9">
                         {avatarUrl ? <AvatarImage src={avatarUrl} alt={operatorName || `Node ${node.nodeId}`} /> : null}
-                        <AvatarFallback className="bg-accent/10 text-accent text-sm">
+                        <AvatarFallback className="bg-zinc-800 text-zinc-400 text-xs font-mono">
                           {node.nodeId}
                         </AvatarFallback>
                       </Avatar>
                       <div className="flex flex-col">
-                        <div className="flex items-center gap-2">
-                          <Body className="font-semibold truncate max-w-[140px]">{operatorName || `Node #${node.nodeId}`}</Body>
-                          {node.isCanonical && (
-                            <Badge variant="default" className="bg-accent text-white text-xs">
-                              C
-                            </Badge>
-                          )}
-                        </div>
-                        <Caption className="text-gray-500">XMTP Node #{node.nodeId}</Caption>
+                        <span className="text-sm font-medium text-zinc-200 truncate max-w-[140px]">
+                          {operatorName || `Node #${node.nodeId}`}
+                        </span>
+                        <span className="text-xs text-zinc-500 font-mono">#{node.nodeId}</span>
                       </div>
                     </div>
                   </TableCell>
@@ -122,22 +126,33 @@ export const NodeTable: React.FC<NodeTableProps> = ({
                     />
                   </TableCell>
                   <TableCell>
+                    <span
+                      className={`text-xs ${
+                        node.isCanonical
+                          ? 'text-zinc-300 font-medium'
+                          : 'text-zinc-500'
+                      }`}
+                    >
+                      {nodeType}
+                    </span>
+                  </TableCell>
+                  <TableCell>
                     {region ? (
-                      <div className="flex items-center gap-1 text-gray-600">
+                      <div className="flex items-center gap-1 text-zinc-400">
                         <MapPin className="h-3.5 w-3.5" />
-                        <Caption>{region}</Caption>
+                        <span className="text-xs">{region}</span>
                       </div>
                     ) : (
-                      <Caption className="text-gray-400">—</Caption>
+                      <span className="text-xs text-zinc-600">—</span>
                     )}
                   </TableCell>
                   <TableCell>
-                    <Caption className="font-mono truncate max-w-[200px]" title={node.httpAddress}>
+                    <span className="text-xs font-mono text-zinc-400 truncate max-w-[200px]" title={node.httpAddress}>
                       {node.httpAddress}
-                    </Caption>
+                    </span>
                   </TableCell>
                   <TableCell>
-                    <Caption className="font-mono">{formatAddress(node.owner)}</Caption>
+                    <span className="text-xs font-mono text-zinc-500">{formatAddress(node.owner)}</span>
                   </TableCell>
                 </TableRow>
               );

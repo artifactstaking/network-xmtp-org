@@ -15,6 +15,7 @@ interface MessageTextProps extends TypographyProps {
 
 /**
  * Heading1 - Largest heading for page titles
+ * Uses Satoshi font for brand consistency with xmtp.org
  */
 export const Heading1 = forwardRef<
   HTMLHeadingElement,
@@ -23,7 +24,7 @@ export const Heading1 = forwardRef<
   return (
     <h1
       ref={ref}
-      className={`text-xl mobile:text-xl tablet:text-xl desktop:text-1.5xl largeDesktop:text-1.5xl font-bold ${className}`}
+      className={`font-satoshi text-xl mobile:text-xl tablet:text-xl desktop:text-1.5xl largeDesktop:text-1.5xl font-bold ${className}`}
       {...props}
     >
       {children}
@@ -35,6 +36,7 @@ Heading1.displayName = 'Heading1';
 
 /**
  * Heading2 - Section headings
+ * Uses Satoshi font for brand consistency with xmtp.org
  */
 export const Heading2 = forwardRef<
   HTMLHeadingElement,
@@ -43,7 +45,7 @@ export const Heading2 = forwardRef<
   return (
     <h2
       ref={ref}
-      className={`text-lg mobile:text-lg tablet:text-lg desktop:text-lg largeDesktop:text-lg font-semibold ${className}`}
+      className={`font-satoshi text-lg mobile:text-lg tablet:text-lg desktop:text-lg largeDesktop:text-lg font-semibold ${className}`}
       {...props}
     >
       {children}
@@ -55,6 +57,7 @@ Heading2.displayName = 'Heading2';
 
 /**
  * Heading3 - Subsection headings
+ * Uses Satoshi font for brand consistency with xmtp.org
  */
 export const Heading3 = forwardRef<
   HTMLHeadingElement,
@@ -63,7 +66,7 @@ export const Heading3 = forwardRef<
   return (
     <h3
       ref={ref}
-      className={`text-base mobile:text-base tablet:text-base desktop:text-base largeDesktop:text-base font-medium ${className}`}
+      className={`font-satoshi text-base mobile:text-base tablet:text-base desktop:text-base largeDesktop:text-base font-medium ${className}`}
       {...props}
     >
       {children}
@@ -177,7 +180,7 @@ export const Code = forwardRef<HTMLElement, TypographyProps & React.HTMLAttribut
     return (
       <code
         ref={ref}
-        className={`font-mono text-xs mobile:text-xs tablet:text-xs desktop:text-xs largeDesktop:text-xs bg-background px-1.5 py-0.5 rounded ${className}`}
+        className={`font-mono text-xs mobile:text-xs tablet:text-xs desktop:text-xs largeDesktop:text-xs bg-muted px-1.5 py-0.5 rounded ${className}`}
         {...props}
       >
         {children}
@@ -196,7 +199,7 @@ export const Link = forwardRef<
   TypographyProps & React.AnchorHTMLAttributes<HTMLAnchorElement>
 >(({ children, className = '', ...props }, ref) => {
   return (
-    <a ref={ref} className={`hover:text-gray-300 transition-colors ${className}`} {...props}>
+    <a ref={ref} className={`hover:text-muted-foreground transition-colors ${className}`} {...props}>
       {children}
     </a>
   );

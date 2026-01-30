@@ -1,6 +1,5 @@
 import React, { useState, useMemo, useCallback } from 'react';
 import { Skeleton } from '@/components/base';
-import { Body } from '@/components/typography';
 import { NodeTable } from './NodeTable';
 import { NodeDetailsDialog } from './NodeDetailsDialog';
 import { NetworkStatusBanner, StatusSummaryCards } from '@/components/ui/status';
@@ -8,7 +7,8 @@ import { NodeData } from '@/types/nodes';
 import { useNodeRegistry } from '@/hooks/contracts/useNodeRegistry';
 import { useAllNodeStatuses, useNetworkStatus } from '@/hooks/nodes';
 import { useMultipleNodeMetadata } from '@/hooks/nodes/useNodeMetadata';
-import { ChevronDown, ChevronUp, Search } from 'lucide-react';
+import { Search, ChevronDown } from 'lucide-react';
+import { cn } from '@/utils/cn';
 
 export const NodesPageContent: React.FC = () => {
   const { getAllNodes, getTokenURI } = useNodeRegistry();
@@ -16,10 +16,8 @@ export const NodesPageContent: React.FC = () => {
   // Local UI state
   const [selectedNode, setSelectedNode] = useState<NodeData | null>(null);
   const [detailsOpen, setDetailsOpen] = useState(false);
-  const [showCanonicalNodes, setShowCanonicalNodes] = useState(false);
-  const [showCommunityNodes, setShowCommunityNodes] = useState(false);
-  const [canonicalSearch, setCanonicalSearch] = useState('');
-  const [communitySearch, setCommunitySearch] = useState('');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [showOffline, setShowOffline] = useState(false);
 
   // Get all nodes from contract
   const nodes = getAllNodes.value || [];
@@ -36,10 +34,6 @@ export const NodesPageContent: React.FC = () => {
   // Calculate network status from canonical nodes
   const networkStatusInfo = useNetworkStatus(nodes, statuses);
 
-  // Separate canonical and community nodes
-  const canonicalNodes = useMemo(() => nodes.filter((n) => n.isCanonical), [nodes]);
-  const communityNodes = useMemo(() => nodes.filter((n) => !n.isCanonical), [nodes]);
-
   // Helper to get operator name from metadata
   const getOperatorName = useCallback((nodeId: number): string => {
     const metadata = metadataMap.get(nodeId);
@@ -47,30 +41,58 @@ export const NodesPageContent: React.FC = () => {
   }, [metadataMap]);
 
   // Filter function for nodes
-  const filterNodes = useCallback((nodeList: NodeData[], searchQuery: string): NodeData[] => {
-    if (!searchQuery.trim()) return nodeList;
-    const query = searchQuery.toLowerCase();
+  const filterNodes = useCallback((nodeList: NodeData[], query: string): NodeData[] => {
+    if (!query.trim()) return nodeList;
+    const q = query.toLowerCase();
     return nodeList.filter((node) => {
       const operatorName = getOperatorName(node.nodeId);
       const health = statuses.get(node.nodeId);
       return (
-        node.nodeId.toString().includes(query) ||
-        node.httpAddress.toLowerCase().includes(query) ||
-        node.owner.toLowerCase().includes(query) ||
-        operatorName.toLowerCase().includes(query) ||
-        (health?.version?.toLowerCase().includes(query) ?? false)
+        node.nodeId.toString().includes(q) ||
+        node.httpAddress.toLowerCase().includes(q) ||
+        node.owner.toLowerCase().includes(q) ||
+        operatorName.toLowerCase().includes(q) ||
+        (health?.version?.toLowerCase().includes(q) ?? false)
       );
     });
   }, [getOperatorName, statuses]);
 
-  // Filtered nodes for each section
-  const filteredCanonicalNodes = useMemo(
-    () => filterNodes(canonicalNodes, canonicalSearch),
-    [canonicalNodes, canonicalSearch, filterNodes]
+  // Sort and organize nodes: Active online, Standby online, then offline
+  const sortedNodes = useMemo(() => {
+    const activeOnline: NodeData[] = [];
+    const standbyOnline: NodeData[] = [];
+    const offline: NodeData[] = [];
+
+    nodes.forEach((node) => {
+      const health = statuses.get(node.nodeId);
+      const isOnline = health?.status === 'online';
+
+      if (isOnline) {
+        if (node.isCanonical) {
+          activeOnline.push(node);
+        } else {
+          standbyOnline.push(node);
+        }
+      } else {
+        offline.push(node);
+      }
+    });
+
+    return { activeOnline, standbyOnline, offline };
+  }, [nodes, statuses]);
+
+  // Filtered nodes for display
+  const filteredActiveOnline = useMemo(
+    () => filterNodes(sortedNodes.activeOnline, searchQuery),
+    [sortedNodes.activeOnline, searchQuery, filterNodes]
   );
-  const filteredCommunityNodes = useMemo(
-    () => filterNodes(communityNodes, communitySearch),
-    [communityNodes, communitySearch, filterNodes]
+  const filteredStandbyOnline = useMemo(
+    () => filterNodes(sortedNodes.standbyOnline, searchQuery),
+    [sortedNodes.standbyOnline, searchQuery, filterNodes]
+  );
+  const filteredOffline = useMemo(
+    () => filterNodes(sortedNodes.offline, searchQuery),
+    [sortedNodes.offline, searchQuery, filterNodes]
   );
 
   const handleNodeClick = (node: NodeData) => {
@@ -81,16 +103,20 @@ export const NodesPageContent: React.FC = () => {
   if (error) {
     return (
       <div className="flex flex-col items-center justify-center py-12">
-        <Body className="text-destructive mb-4">Error loading nodes: {error}</Body>
-        <button onClick={() => getAllNodes.refetch()} className="text-accent hover:underline">
+        <p className="text-red-400 mb-4">Error loading nodes: {error}</p>
+        <button onClick={() => getAllNodes.refetch()} className="text-zinc-400 hover:text-zinc-200 transition-colors">
           Try again
         </button>
       </div>
     );
   }
 
+  const hasOnlineNodes = filteredActiveOnline.length > 0 || filteredStandbyOnline.length > 0;
+  const hasOfflineNodes = filteredOffline.length > 0;
+  const totalOnline = filteredActiveOnline.length + filteredStandbyOnline.length;
+
   return (
-    <div className="space-y-8">
+    <div className="space-y-6">
       {/* Network Status Banner */}
       <NetworkStatusBanner
         statusInfo={networkStatusInfo}
@@ -103,117 +129,94 @@ export const NodesPageContent: React.FC = () => {
 
       {isLoading ? (
         <div className="space-y-4">
-          <Skeleton className="h-16 w-full rounded-lg" />
-          <Skeleton className="h-16 w-full rounded-lg" />
+          <Skeleton className="h-16 w-full rounded-lg bg-zinc-800" />
+          <Skeleton className="h-64 w-full rounded-lg bg-zinc-800" />
         </div>
       ) : (
         <div className="space-y-4">
-          {/* Canonical Nodes Section - Collapsible */}
-          {canonicalNodes.length > 0 && (
-            <div className="rounded-lg border bg-white overflow-hidden shadow-sm">
-              <button
-                onClick={() => setShowCanonicalNodes(!showCanonicalNodes)}
-                className="w-full px-6 py-4 flex items-center justify-between hover:bg-gray-50 transition-colors"
-              >
-                <div className="flex items-center gap-3">
-                  <span className="font-semibold text-gray-900">Canonical Nodes</span>
-                  <span className="text-sm text-gray-500">
-                    {networkStatusInfo.canonicalOnline}/{canonicalNodes.length} online
-                  </span>
-                </div>
-                {showCanonicalNodes ? (
-                  <ChevronUp className="h-5 w-5 text-gray-400" />
-                ) : (
-                  <ChevronDown className="h-5 w-5 text-gray-400" />
-                )}
-              </button>
-              {showCanonicalNodes && (
-                <div className="border-t px-6 py-4 space-y-4">
-                  {/* Search Input */}
-                  <div className="relative">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
-                    <input
-                      type="text"
-                      placeholder="Search by ID, operator, address, version..."
-                      value={canonicalSearch}
-                      onChange={(e) => setCanonicalSearch(e.target.value)}
-                      className="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    />
-                  </div>
-                  {/* Node Table */}
-                  {filteredCanonicalNodes.length > 0 ? (
-                    <NodeTable
-                      nodes={filteredCanonicalNodes}
-                      metadataMap={metadataMap}
-                      statusMap={statuses}
-                      onNodeClick={handleNodeClick}
-                    />
-                  ) : (
-                    <div className="text-center py-8 text-gray-500">
-                      No nodes match your search
-                    </div>
-                  )}
-                </div>
-              )}
-            </div>
-          )}
+          {/* Search Input */}
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-zinc-500" />
+            <input
+              type="text"
+              placeholder="Search by ID, operator, address, version..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full pl-10 pr-4 py-2.5 border border-zinc-800 rounded-lg text-sm bg-zinc-900 text-zinc-100 placeholder:text-zinc-600 focus:outline-none focus:ring-1 focus:ring-zinc-600 focus:border-zinc-600 transition-colors"
+            />
+          </div>
 
-          {/* Community Nodes Section - Collapsible */}
-          {communityNodes.length > 0 && (
-            <div className="rounded-lg border bg-white overflow-hidden shadow-sm">
-              <button
-                onClick={() => setShowCommunityNodes(!showCommunityNodes)}
-                className="w-full px-6 py-4 flex items-center justify-between hover:bg-gray-50 transition-colors"
-              >
-                <div className="flex items-center gap-3">
-                  <span className="font-semibold text-gray-900">Community Nodes</span>
-                  <span className="text-sm text-gray-500">
-                    {networkStatusInfo.communityOnline}/{communityNodes.length} online
-                  </span>
+          {/* Node List */}
+          <div className="rounded-lg border border-zinc-800/50 bg-zinc-900 overflow-hidden ring-1 ring-zinc-800/50">
+            {/* Online Nodes */}
+            {hasOnlineNodes ? (
+              <div>
+                <div className="px-4 py-3 border-b border-zinc-800/50 bg-zinc-900/50">
+                  <h2 className="text-sm font-medium text-zinc-300">
+                    Online Nodes
+                    <span className="ml-2 text-zinc-500 font-normal">
+                      ({totalOnline})
+                    </span>
+                  </h2>
                 </div>
-                {showCommunityNodes ? (
-                  <ChevronUp className="h-5 w-5 text-gray-400" />
-                ) : (
-                  <ChevronDown className="h-5 w-5 text-gray-400" />
-                )}
-              </button>
-              {showCommunityNodes && (
-                <div className="border-t">
-                  {/* Search Input */}
-                  <div className="px-6 py-4 border-b bg-gray-50">
-                    <div className="relative">
-                      <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
-                      <input
-                        type="text"
-                        placeholder="Search by ID, operator, address, version..."
-                        value={communitySearch}
-                        onChange={(e) => setCommunitySearch(e.target.value)}
-                        className="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white"
-                      />
-                    </div>
+                <NodeTable
+                  nodes={[...filteredActiveOnline, ...filteredStandbyOnline]}
+                  metadataMap={metadataMap}
+                  statusMap={statuses}
+                  onNodeClick={handleNodeClick}
+                />
+              </div>
+            ) : (
+              <div className="text-center py-12 text-zinc-500">
+                {searchQuery ? 'No online nodes match your search' : 'No online nodes'}
+              </div>
+            )}
+
+            {/* Offline Nodes - Expandable */}
+            {hasOfflineNodes && (
+              <div className="border-t border-zinc-800/50">
+                <button
+                  onClick={() => setShowOffline(!showOffline)}
+                  className="w-full px-4 py-3 flex items-center justify-between hover:bg-zinc-800/30 transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-zinc-600 focus-visible:ring-inset"
+                >
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm font-medium text-zinc-500">
+                      Offline Nodes
+                    </span>
+                    <span className="text-sm text-zinc-600">
+                      ({filteredOffline.length})
+                    </span>
                   </div>
-                  {/* Node Table */}
-                  {filteredCommunityNodes.length > 0 ? (
+                  <ChevronDown
+                    className={cn(
+                      'h-4 w-4 text-zinc-500 transition-transform duration-200',
+                      showOffline && 'rotate-180'
+                    )}
+                  />
+                </button>
+                <div
+                  className={cn(
+                    'grid transition-[grid-template-rows] duration-200 ease-out',
+                    showOffline ? 'grid-rows-[1fr]' : 'grid-rows-[0fr]'
+                  )}
+                >
+                  <div className="overflow-hidden">
                     <NodeTable
-                      nodes={filteredCommunityNodes}
+                      nodes={filteredOffline}
                       metadataMap={metadataMap}
                       statusMap={statuses}
                       onNodeClick={handleNodeClick}
                     />
-                  ) : (
-                    <div className="text-center py-8 text-gray-500">
-                      No nodes match your search
-                    </div>
-                  )}
+                  </div>
                 </div>
-              )}
-            </div>
-          )}
+              </div>
+            )}
+          </div>
 
           {/* Empty State */}
           {nodes.length === 0 && (
             <div className="flex flex-col items-center justify-center py-12 text-center">
-              <Body className="text-secondary">No nodes registered on the network</Body>
+              <p className="text-zinc-500">No nodes registered on the network</p>
             </div>
           )}
         </div>

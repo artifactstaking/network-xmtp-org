@@ -42,36 +42,37 @@ export function calculateNetworkStatus(
 
 /**
  * Get display configuration for a network status
+ * Uses semantic colors that work in both light and dark modes
  */
 export function getStatusConfig(status: NetworkStatus): StatusConfig {
   switch (status) {
     case 'operational':
       return {
         label: 'All Systems Operational',
-        color: '#22c55e', // green-500
-        bgClass: 'bg-green-50',
-        dotClass: 'bg-green-500',
+        color: 'hsl(142, 71%, 45%)', // emerald-500
+        bgClass: 'bg-emerald-500/10',
+        dotClass: 'bg-emerald-500',
       };
     case 'degraded':
       return {
         label: 'Degraded Performance',
-        color: '#eab308', // yellow-500
-        bgClass: 'bg-yellow-50',
-        dotClass: 'bg-yellow-500',
+        color: 'hsl(45, 93%, 47%)', // amber-500
+        bgClass: 'bg-amber-500/10',
+        dotClass: 'bg-amber-500',
       };
     case 'major-outage':
       return {
         label: 'Major Outage',
-        color: '#f97316', // orange-500
-        bgClass: 'bg-orange-50',
+        color: 'hsl(25, 95%, 53%)', // orange-500
+        bgClass: 'bg-orange-500/10',
         dotClass: 'bg-orange-500',
       };
     case 'outage':
       return {
         label: 'Outage',
-        color: '#ef4444', // red-500
-        bgClass: 'bg-red-50',
-        dotClass: 'bg-red-500',
+        color: 'hsl(0, 84%, 60%)', // destructive-like red
+        bgClass: 'bg-destructive/10',
+        dotClass: 'bg-destructive',
       };
   }
 }
